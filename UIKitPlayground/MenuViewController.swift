@@ -7,7 +7,7 @@
 
 import UIKit
 
-class MenuViewController: UIViewController {
+class MenuViewController: UIViewController, UITextFieldDelegate {
     
     private var imageView: UIImageView?
     private var showImageButton: UIButton?
@@ -15,6 +15,9 @@ class MenuViewController: UIViewController {
     private var imageContainerView: UIView?
     private var changeIconLeftButton: UIButton?
     private var changeIconRightButton: UIButton?
+    private var messageButton: UIButton?
+    private var messageTextField: UITextField!
+    private var messageAlert: String = "This is a simple notification"
     
     private let iconList = ["star", "heart", "moon", "sun.max", "cloud"]
     private var currentIconIndex = 0
@@ -63,13 +66,34 @@ class MenuViewController: UIViewController {
         changeIconLeftButton?.setImage(leftIconImage, for: .normal)
         changeIconLeftButton?.addTarget(self, action: #selector(changeIconLeft), for: .touchUpInside)
         changeIconLeftButton?.isHidden = true
-
+        
         changeIconRightButton = UIButton(type: .system)
         changeIconRightButton?.configuration = configButton
         let rightIconImage = UIImage(systemName: "arrow.right", withConfiguration: UIImage.SymbolConfiguration(pointSize: 10))
         changeIconRightButton?.setImage(rightIconImage, for: .normal)
-        changeIconRightButton?.addTarget(self, action: #selector(changeIconLeft), for: .touchUpInside)
+        changeIconRightButton?.addTarget(self, action: #selector(changeIconRight), for: .touchUpInside)
         changeIconRightButton?.isHidden = true
+        
+        messageTextField = UITextField()
+        messageTextField?.borderStyle = .roundedRect
+        messageTextField?.backgroundColor = .black
+        messageTextField?.textColor = .white
+        messageTextField?.borderStyle = .none
+        messageTextField?.layer.borderColor = UIColor.white.cgColor
+        messageTextField?.layer.borderWidth = 2
+        messageTextField?.layer.cornerRadius = 10.0
+        messageTextField?.placeholder = "Message here..."
+        messageTextField?.attributedPlaceholder = NSAttributedString(string: "Message here...", attributes: [NSAttributedString.Key.foregroundColor: UIColor.white])
+        messageTextField?.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: messageTextField!.frame.height))
+        messageTextField?.leftViewMode = .always
+        messageTextField?.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: messageTextField!.frame.height))
+        messageTextField?.rightViewMode = .always
+        messageTextField?.delegate = self
+        
+        messageButton = UIButton(type: .system)
+        messageButton?.configuration = configButton
+        messageButton?.setTitle("Send", for: .normal)
+        messageButton?.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
         
         notificationButton.translatesAutoresizingMaskIntoConstraints = false
         changeBackgroundColorButton?.translatesAutoresizingMaskIntoConstraints = false
@@ -78,6 +102,8 @@ class MenuViewController: UIViewController {
         imageView?.translatesAutoresizingMaskIntoConstraints = false
         changeIconLeftButton?.translatesAutoresizingMaskIntoConstraints = false
         changeIconRightButton?.translatesAutoresizingMaskIntoConstraints = false
+        messageButton?.translatesAutoresizingMaskIntoConstraints = false
+        messageTextField?.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(notificationButton)
         view.addSubview(changeBackgroundColorButton!)
@@ -85,14 +111,18 @@ class MenuViewController: UIViewController {
         view.addSubview(showImageButton!)
         view.addSubview(changeIconLeftButton!)
         view.addSubview(changeIconRightButton!)
-
+        view.addSubview(messageButton!)
+        view.addSubview(messageTextField!)
+        
         imageContainerView?.addSubview(imageView!)
         
         NSLayoutConstraint.activate([
             notificationButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30),
             notificationButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            
             changeBackgroundColorButton!.topAnchor.constraint(equalTo: notificationButton.bottomAnchor, constant: 10),
             changeBackgroundColorButton!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            
             imageContainerView!.topAnchor.constraint(equalTo: changeBackgroundColorButton!.bottomAnchor, constant: 30),
             imageContainerView!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             
@@ -107,20 +137,27 @@ class MenuViewController: UIViewController {
             changeIconLeftButton!.leadingAnchor.constraint(equalTo: showImageButton!.trailingAnchor, constant: 8),
             changeIconLeftButton!.centerYAnchor.constraint(equalTo: imageContainerView!.centerYAnchor),
             changeIconLeftButton!.heightAnchor.constraint(equalToConstant: 40),
-                    
+            
             changeIconRightButton!.leadingAnchor.constraint(equalTo: imageView!.trailingAnchor, constant: 10),
             changeIconRightButton!.centerYAnchor.constraint(equalTo: imageContainerView!.centerYAnchor),
             changeIconRightButton!.heightAnchor.constraint(equalToConstant: 40),
-                    
             
+            messageTextField!.topAnchor.constraint(equalTo: showImageButton!.bottomAnchor, constant: 16),
+            messageTextField!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            messageTextField!.heightAnchor.constraint(equalToConstant: 40),
+            messageTextField!.widthAnchor.constraint(equalToConstant: 200),
+            
+            messageButton!.topAnchor.constraint(equalTo: showImageButton!.bottomAnchor, constant: 16),
+            messageButton!.leadingAnchor.constraint(equalTo: messageTextField!.trailingAnchor, constant: 10)
         ])
     }
     
     @objc func showNotification() {
-        let alert = UIAlertController(title: "Notification", message: "This is a simple notification", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Notification", message: messageAlert, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         self.present(alert, animated: true, completion: nil)
     }
+    
     
     @objc func changeBackgroundColor() {
         if view.backgroundColor == .black {
@@ -152,6 +189,9 @@ class MenuViewController: UIViewController {
         let newBackgroundColor: UIColor = view.backgroundColor == .white ? .black : .white
         let newForegroundColor: UIColor = view.backgroundColor == .white ? .white : .black
         let newStrokeColor: UIColor = view.backgroundColor == .white ? .black : .white
+        let newTextColor: UIColor = view.backgroundColor == .black ? .white : .black
+        let newPlaceholderBackgroundColor: UIColor = view.backgroundColor == .white ? .white : .black
+        let newPlaceholderColor: UIColor = view.backgroundColor == .white ? .black : .white
         
         func updateButtons(in containerView: UIView) {
             for subview in containerView.subviews where subview is UIButton {
@@ -171,10 +211,26 @@ class MenuViewController: UIViewController {
             }
         }
         
-        // Atualizando os botões na view principal e na imageContainerView
+        func updateTextFields(in containerView: UIView) {
+            for subview in containerView.subviews where subview is UITextField {
+                if let textField = subview as? UITextField {
+                    textField.backgroundColor = newPlaceholderBackgroundColor
+                    textField.textColor = newTextColor
+                    textField.layer.borderColor = newStrokeColor.cgColor
+                    textField.attributedPlaceholder = NSAttributedString(
+                        string: textField.placeholder ?? "",
+                        attributes: [NSAttributedString.Key.foregroundColor: newPlaceholderColor]
+                    )
+                }
+            }
+        }
+        
+        // Atualizando os botões e textFields na view principal e na imageContainerView
         updateButtons(in: view)
+        updateTextFields(in: view)
         if let containerView = imageContainerView {
             updateButtons(in: containerView)
+            updateTextFields(in: containerView)
         }
     }
     
@@ -182,10 +238,26 @@ class MenuViewController: UIViewController {
         currentIconIndex = (currentIconIndex - 1 + iconList.count) % iconList.count
         imageView?.image = UIImage(systemName: iconList[currentIconIndex])
     }
-
+    
     @objc func changeIconRight() {
         currentIconIndex = (currentIconIndex + 1) % iconList.count
         imageView?.image = UIImage(systemName: iconList[currentIconIndex])
     }
-
+    
+    @objc func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let maxLength = 20 // Número máximo de caracteres permitidos
+        let currentString: NSString = textField.text! as NSString
+        let newString: NSString = currentString.replacingCharacters(in: range, with: string) as NSString
+        return newString.length <= maxLength
+    }
+    
+    @objc func sendMessage() {
+        messageAlert = messageTextField?.text ?? "This is a simple notification"
+        let alert = UIAlertController(title: "Message", message: messageAlert, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+        messageTextField!.text = " "
+    }
+    
 }
+
