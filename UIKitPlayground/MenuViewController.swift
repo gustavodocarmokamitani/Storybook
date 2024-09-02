@@ -418,6 +418,7 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
         animateView(changeIconRightButton)
         animateView(messageButton)
         animateView(animationButton)
+        animateView(progressButton)
         
         // Anima todos os text fields (adicione aqui seus text fields)
         animateView(messageTextField)
