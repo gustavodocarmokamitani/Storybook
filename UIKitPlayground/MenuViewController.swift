@@ -9,6 +9,8 @@ import UIKit
 
 class MenuViewController: UIViewController, UITextFieldDelegate {
     
+    private var labelStorybook: UILabel?
+    private var notificationButton: UIButton?
     private var imageView: UIImageView?
     private var showImageButton: UIButton?
     private var changeBackgroundColorButton: UIButton?
@@ -18,6 +20,17 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
     private var messageButton: UIButton?
     private var messageTextField: UITextField!
     private var messageAlert: String = "This is a simple notification"
+    private var animationButton: UIButton?
+    private var slideOpacityButton: UISlider?
+    private var progressButton: UIButton?
+    private var progressView : UIProgressView?
+    
+    var notificationButtonClicked: Bool = false
+    var changeBackgroundColorButtonClicked: Bool = false
+    var showImageButtonClicked: Bool = false
+    var messageButtonClicked: Bool = false
+    var animationButtonClicked: Bool = false
+    var slideOpacityButtonCliked: Bool = false
     
     private let iconList = ["star", "heart", "moon", "sun.max", "cloud"]
     private var currentIconIndex = 0
@@ -37,11 +50,17 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
         configButton.background.strokeColor = .black
         configButton.background.strokeWidth = 2
         configButton.background.cornerRadius = 10
+    
+        labelStorybook = UILabel()
+        labelStorybook?.text = "Storybook"
+        labelStorybook?.textColor = UIColor.white
+        labelStorybook?.textAlignment = .center
+        labelStorybook?.font = UIFont.systemFont(ofSize: 24)
         
-        let notificationButton = UIButton(type: .system)
-        notificationButton.configuration = configButton
-        notificationButton.setTitle("Show Notification", for: .normal)
-        notificationButton.addTarget(self, action: #selector(showNotification), for: .touchUpInside)
+        notificationButton = UIButton(type: .system)
+        notificationButton?.configuration = configButton
+        notificationButton?.setTitle("Show Notification", for: .normal)
+        notificationButton?.addTarget(self, action: #selector(showNotification), for: .touchUpInside)
         
         changeBackgroundColorButton = UIButton(type: .system)
         changeBackgroundColorButton?.configuration = configButton
@@ -95,7 +114,38 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
         messageButton?.setTitle("Send", for: .normal)
         messageButton?.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
         
-        notificationButton.translatesAutoresizingMaskIntoConstraints = false
+        animationButton = UIButton(type: .system)
+        animationButton?.configuration = configButton
+        animationButton?.setTitle("Animation", for: .normal)
+        animationButton?.addTarget(self, action: #selector(animationButtons), for: .touchUpInside)
+        
+        slideOpacityButton = UISlider()
+        slideOpacityButton?.layer.borderWidth = 2
+        slideOpacityButton?.layer.borderColor = UIColor.white.cgColor
+        slideOpacityButton?.backgroundColor = UIColor.white
+        slideOpacityButton?.layer.borderWidth = 2
+        slideOpacityButton?.layer.cornerRadius = 10.0
+        slideOpacityButton?.minimumValue = 0.1
+        slideOpacityButton?.maximumValue = 1
+        slideOpacityButton?.value = 1
+        slideOpacityButton?.thumbTintColor = UIColor.black
+        slideOpacityButton?.minimumTrackTintColor = UIColor.black
+        slideOpacityButton?.maximumTrackTintColor = UIColor.black
+        slideOpacityButton?.addTarget(self, action: #selector(opacitySliderChanged(_:)), for: .valueChanged)
+        
+        progressButton = UIButton(type: .system)
+        progressButton!.configuration = configButton
+        progressButton!.setTitle("Increase Progress", for: .normal)
+        progressButton!.addTarget(self, action: #selector(progressButtonTapped), for: .touchUpInside)
+        view.addSubview(progressButton!)
+        
+        progressView = UIProgressView(progressViewStyle: .default)
+        progressView!.progress = 0.0
+        progressView!.tintColor = .systemGreen
+        view.addSubview(progressView!)
+        
+        labelStorybook?.translatesAutoresizingMaskIntoConstraints = false
+        notificationButton?.translatesAutoresizingMaskIntoConstraints = false
         changeBackgroundColorButton?.translatesAutoresizingMaskIntoConstraints = false
         showImageButton?.translatesAutoresizingMaskIntoConstraints = false
         imageContainerView?.translatesAutoresizingMaskIntoConstraints = false
@@ -104,8 +154,14 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
         changeIconRightButton?.translatesAutoresizingMaskIntoConstraints = false
         messageButton?.translatesAutoresizingMaskIntoConstraints = false
         messageTextField?.translatesAutoresizingMaskIntoConstraints = false
+        animationButton?.translatesAutoresizingMaskIntoConstraints = false
+        slideOpacityButton?.translatesAutoresizingMaskIntoConstraints = false
+        progressButton?.translatesAutoresizingMaskIntoConstraints = false
+        progressView?.translatesAutoresizingMaskIntoConstraints = false
+        imageContainerView?.addSubview(imageView!)
         
-        view.addSubview(notificationButton)
+        view.addSubview(labelStorybook!)
+        view.addSubview(notificationButton!)
         view.addSubview(changeBackgroundColorButton!)
         view.addSubview(imageContainerView!)
         view.addSubview(showImageButton!)
@@ -113,21 +169,29 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
         view.addSubview(changeIconRightButton!)
         view.addSubview(messageButton!)
         view.addSubview(messageTextField!)
-        
-        imageContainerView?.addSubview(imageView!)
+        view.addSubview(animationButton!)
+        view.addSubview(slideOpacityButton!)
+        view.addSubview(progressButton!)
+        view.addSubview(progressView!)
         
         NSLayoutConstraint.activate([
-            notificationButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30),
-            notificationButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            labelStorybook!.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            labelStorybook!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            labelStorybook!.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            notificationButton!.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
+            notificationButton!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            notificationButton!.widthAnchor.constraint(equalToConstant: 200),
             
-            changeBackgroundColorButton!.topAnchor.constraint(equalTo: notificationButton.bottomAnchor, constant: 10),
+            changeBackgroundColorButton!.topAnchor.constraint(equalTo: notificationButton!.bottomAnchor, constant: 10),
             changeBackgroundColorButton!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            changeBackgroundColorButton!.widthAnchor.constraint(equalToConstant: 200),
             
             imageContainerView!.topAnchor.constraint(equalTo: changeBackgroundColorButton!.bottomAnchor, constant: 30),
             imageContainerView!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             
             showImageButton!.leadingAnchor.constraint(equalTo: imageContainerView!.leadingAnchor),
             showImageButton!.centerYAnchor.constraint(equalTo: imageContainerView!.centerYAnchor),
+            showImageButton!.widthAnchor.constraint(equalToConstant: 200),
             
             imageView!.leadingAnchor.constraint(equalTo: changeIconLeftButton!.trailingAnchor, constant: 10),
             imageView!.centerYAnchor.constraint(equalTo: imageContainerView!.centerYAnchor),
@@ -148,7 +212,25 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
             messageTextField!.widthAnchor.constraint(equalToConstant: 200),
             
             messageButton!.topAnchor.constraint(equalTo: showImageButton!.bottomAnchor, constant: 16),
-            messageButton!.leadingAnchor.constraint(equalTo: messageTextField!.trailingAnchor, constant: 10)
+            messageButton!.leadingAnchor.constraint(equalTo: messageTextField!.trailingAnchor, constant: 16),
+            
+            animationButton!.topAnchor.constraint(equalTo: messageButton!.bottomAnchor, constant: 16),
+            animationButton!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            animationButton!.widthAnchor.constraint(equalToConstant: 200),
+            
+            slideOpacityButton!.topAnchor.constraint(equalTo: animationButton!.bottomAnchor, constant: 16),
+            slideOpacityButton!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            slideOpacityButton!.widthAnchor.constraint(equalToConstant: 200),
+            slideOpacityButton!.heightAnchor.constraint(equalToConstant: 40),
+            
+            progressButton!.topAnchor.constraint(equalTo: slideOpacityButton!.bottomAnchor, constant: 16),
+            progressButton!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            progressButton!.widthAnchor.constraint(equalToConstant: 200),
+            progressButton!.heightAnchor.constraint(equalToConstant: 40),
+            
+            progressView!.topAnchor.constraint(equalTo: progressButton!.bottomAnchor, constant: 16),
+            progressView!.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            progressView!.widthAnchor.constraint(equalToConstant: 200)
         ])
     }
     
@@ -156,6 +238,9 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
         let alert = UIAlertController(title: "Notification", message: messageAlert, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         self.present(alert, animated: true, completion: nil)
+        
+        notificationButtonClicked == false ? incrementProgress() : nil
+        notificationButtonClicked = true
     }
     
     
@@ -168,6 +253,8 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
             changeBackgroundColorButton?.setTitle("Change Dark Mode", for: .normal)
         }
         updateButtonColors()
+        changeBackgroundColorButtonClicked == false ? incrementProgress() : nil
+        changeBackgroundColorButtonClicked = true
     }
     
     @objc func showImage() {
@@ -183,6 +270,8 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
             changeIconLeftButton!.isHidden = true
             changeIconRightButton!.isHidden = true
         }
+        showImageButtonClicked == false ? incrementProgress() : nil
+        showImageButtonClicked = true
     }
     
     @objc func updateButtonColors() {
@@ -192,6 +281,7 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
         let newTextColor: UIColor = view.backgroundColor == .black ? .white : .black
         let newPlaceholderBackgroundColor: UIColor = view.backgroundColor == .white ? .white : .black
         let newPlaceholderColor: UIColor = view.backgroundColor == .white ? .black : .white
+        let newSliderTrackColor: UIColor = view.backgroundColor == .black ? .black : .white
         
         func updateButtons(in containerView: UIView) {
             for subview in containerView.subviews where subview is UIButton {
@@ -225,12 +315,39 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
             }
         }
         
+        func updateSliders(in containerView: UIView) {
+            for subview in containerView.subviews where subview is UISlider {
+                if let slider = subview as? UISlider {
+                    slider.layer.borderColor = newStrokeColor.cgColor
+                    slider.layer.borderWidth = 2
+                    slider.layer.cornerRadius = 10.0
+                    slider.thumbTintColor = newSliderTrackColor
+                    slider.minimumTrackTintColor = newSliderTrackColor
+                    slider.backgroundColor = newBackgroundColor
+                }
+            }
+        }
+        
+        func updateLabel(in containerView: UIView) {
+            // Itera sobre todas as subviews da containerView
+            for subview in containerView.subviews where subview is UILabel {
+                // Verifica se a subview é uma UILabel
+                if let label = subview as? UILabel {
+                    // Atualiza a cor do texto da UILabel
+                    label.textColor = newBackgroundColor
+                }
+            }
+        }
+        
         // Atualizando os botões e textFields na view principal e na imageContainerView
         updateButtons(in: view)
         updateTextFields(in: view)
+        updateSliders(in: view)
+        updateLabel(in: view)
         if let containerView = imageContainerView {
             updateButtons(in: containerView)
             updateTextFields(in: containerView)
+            updateLabel(in: containerView)
         }
     }
     
@@ -252,12 +369,93 @@ class MenuViewController: UIViewController, UITextFieldDelegate {
     }
     
     @objc func sendMessage() {
-        messageAlert = messageTextField?.text ?? "This is a simple notification"
+        // Verifica se o texto no messageTextField está vazio ou contém apenas espaços em branco
+        guard let message = messageTextField?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !message.isEmpty else {
+            // Se estiver vazio, exibe um alerta
+            let emptyAlert = UIAlertController(title: "Error", message: "Message cannot be empty.", preferredStyle: .alert)
+            emptyAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            self.present(emptyAlert, animated: true, completion: nil)
+            return
+        }
+        
+        // Se não estiver vazio, exibe a mensagem normalmente
+        messageAlert = message
         let alert = UIAlertController(title: "Message", message: messageAlert, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         self.present(alert, animated: true, completion: nil)
-        messageTextField!.text = " "
+        
+        // Limpa o campo de texto
+        messageTextField?.text = ""
+        
+        messageButtonClicked == false ? incrementProgress() : nil
+        messageButtonClicked = true
     }
     
+    
+    @objc func animationButtons() {
+        let duration = 0.5
+        let delay = 0.0
+        let options: UIView.AnimationOptions = [.curveEaseInOut]
+        let transformScale = CGAffineTransform(scaleX: 1.1, y: 1.1)
+        let transformIdentity = CGAffineTransform.identity
+        
+        // Função para animar um botão ou text field específico
+        func animateView(_ view: UIView?) {
+            guard let view = view else { return }
+            UIView.animate(withDuration: duration, delay: delay, options: options, animations: {
+                view.transform = transformScale
+            }, completion: { _ in
+                UIView.animate(withDuration: duration, delay: delay, options: options, animations: {
+                    view.transform = transformIdentity
+                }, completion: nil)
+            })
+        }
+        // Anima todos os botões
+        animateView(notificationButton)
+        animateView(changeBackgroundColorButton)
+        animateView(showImageButton)
+        animateView(changeIconLeftButton)
+        animateView(changeIconRightButton)
+        animateView(messageButton)
+        animateView(animationButton)
+        
+        // Anima todos os text fields (adicione aqui seus text fields)
+        animateView(messageTextField)
+        animateView(slideOpacityButton)
+        
+        animationButtonClicked == false ? incrementProgress() : nil
+        animationButtonClicked = true
+    }
+    
+    @objc func opacitySliderChanged(_ sender: UISlider) {
+        let opacityValue = CGFloat(sender.value)
+        
+        let buttons = [notificationButton, changeBackgroundColorButton, showImageButton, changeIconLeftButton, changeIconRightButton, messageButton, animationButton, slideOpacityButton, progressButton, progressView]
+        for button in buttons {
+            button?.alpha = opacityValue
+        }
+        
+        messageTextField.alpha = opacityValue
+        
+        imageView?.alpha = opacityValue
+        
+        slideOpacityButtonCliked == false ? incrementProgress() : nil
+        slideOpacityButtonCliked = true
+    }
+    
+    func incrementProgress() {
+        let currentProgress = progressView?.progress ?? 0.0
+        let newProgress = min(currentProgress + 0.15, 1.0)
+        
+        progressView?.setProgress(newProgress, animated: true)
+        
+        if newProgress >= 1.0 {
+            progressButton?.setTitle("Completed", for: .normal)
+        }
+    }
+    
+    @objc func progressButtonTapped() {
+        incrementProgress()
+    }
 }
 
